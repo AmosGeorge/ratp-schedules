@@ -1,0 +1,136 @@
+<html>
+<head>
+<title>RATP - Horaires en temps réel</title>
+<script>
+    var selectedType = "";
+    var selectedLine = "";
+
+    var optionsLines = [];
+    var optionsStations = [];
+
+    function selectType(type) {
+        selectedType = type;
+        var xhttp = new XMLHttpRequest();
+        xhttp.responseType = 'json';
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.response);
+                lineSelector = document.querySelector("#line-select");
+                document.querySelectorAll(".appended-line").forEach(e => e.remove());
+                document.querySelectorAll(".appended-station").forEach(e => e.remove());
+                document.querySelector("#schedule-div").innerHTML = "";
+                document.querySelectorAll(".stationc").forEach(e => e.hidden=true);
+                document.querySelectorAll(".schedulec").forEach(e => e.hidden=true);
+                this.response["result"][type].forEach(function(item){
+                    var opt = document.createElement('option');
+                    opt.className = "appended-line"
+                    opt.value = item["code"];
+                    opt.innerHTML = item["name"]+" ("+item["directions"]+")";
+                    lineSelector.appendChild(opt);
+                });
+                optionsLines = Array.from(lineSelector.options);
+            }
+        };
+        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v3/lines/"+type, true);
+        xhttp.send();
+        document.querySelectorAll(".linec").forEach(e => e.hidden=false);
+    };
+
+    function selectLine(line) {
+        selectedLine = line;
+        var xhttp = new XMLHttpRequest();
+        xhttp.responseType = 'json';
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.response);
+                stationSelector = document.querySelector("#station-select");
+                document.querySelectorAll(".appended-station").forEach(e => e.remove());
+                document.querySelector("#schedule-div").innerHTML = "";
+                document.querySelectorAll(".schedulec").forEach(e => e.hidden=true);
+                this.response["result"]["stations"].forEach(function(item){
+                    var opt = document.createElement('option');
+                    opt.className = "appended-station"
+                    opt.value = item["slug"];
+                    opt.innerHTML = item["name"];
+                    stationSelector.appendChild(opt);
+                });
+                optionsStations = Array.from(stationSelector.options);
+            }
+        };
+        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v3/stations/"+selectedType+"/"+line, true);
+        xhttp.send();
+        document.querySelectorAll(".stationc").forEach(e => e.hidden=false);
+    };
+
+    function selectStation(station) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.responseType = 'json';
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log(this.response);
+                schedulesDiv = document.querySelector("#schedule-div");
+                schedulesDiv.innerHTML = "";
+                this.response["result"]["schedules"].forEach(function(item){
+                    var div = document.createElement('div');
+                    div.innerHTML = item["destination"]+" : "+item["message"];
+                    schedulesDiv.appendChild(div);
+                });
+            }
+        };
+        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v3/schedules/"+selectedType+"/"+selectedLine+"/"+station+"/A+R", true);
+        xhttp.send();
+        document.querySelectorAll(".schedulec").forEach(e => e.hidden=false);
+    };
+
+    /* function findMatches(search, options) {
+        return options.filter(option => {
+            const regex = new RegExp(search, 'gi');
+            return option.text.match(regex);
+        });
+    };
+
+    function filterOptions(options,select) {
+        options.forEach(option => { 
+            option.remove();
+            option.selected = false;
+        });
+        const matchArray = findMatches(this.value, options);
+        select.append(...matchArray);
+    }; */
+</script>
+</head>
+<body>
+    <h3>Type de transport</h3>
+    <select name="type" id="type-select" onchange="selectType(document.querySelector('#type-select').value)">
+        <option value="default" selected>-- Type de transport --</option>
+        <option value="bus">Bus</option>
+        <option value="metros">Metro</option>
+        <option value="noctiliens">Noctilien</option>
+        <option value="rers">RER</option>
+        <option value="tramways">Tram</option>
+    </select>
+
+    <div class="linec" hidden="true">
+        <h3>Ligne</h3>
+        <!-- <input id="line-filter" placeholder="Filtrer..." onchange="filterOptions(optionsLines,document.querySelector('#line-select'))"/><br/> -->
+        <select name="line" id="line-select" onchange="selectLine(document.querySelector('#line-select').value)">
+            <option value="default" selected>-- Ligne --</option>
+        </select>
+    </div>
+
+    <div class="stationc" hidden="true">
+        <h3>Arrêt</h3>
+        <!-- <input id="station-filter" placeholder="Filtrer..." onchange="filterOptions(optionsStations,document.querySelector('#station-select'))"/><br/> -->
+        <select name="station" id="station-select" onchange="selectStation(document.querySelector('#station-select').value)">
+            <option value="default" selected>-- Arrêt --</option>
+        </select>
+    </div>
+
+    <div class="schedulec" hidden="true">
+        <h1>Horaires :</h1>
+        <div id="schedule-div"></div><br/>
+        <button class="schedulec" onclick="selectStation(document.querySelector('#station-select').value)">Actualiser les horaires</button>
+    </div>
+
+</body>
+</html>
