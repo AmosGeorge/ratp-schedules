@@ -31,7 +31,7 @@
                 optionsLines = Array.from(lineSelector.options);
             }
         };
-        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v3/lines/"+type, true);
+        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v4/lines/"+type, true);
         xhttp.send();
         document.querySelectorAll(".linec").forEach(e => e.hidden=false);
     };
@@ -57,7 +57,7 @@
                 optionsStations = Array.from(stationSelector.options);
             }
         };
-        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v3/stations/"+selectedType+"/"+line, true);
+        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v4/stations/"+selectedType+"/"+line, true);
         xhttp.send();
         document.querySelectorAll(".stationc").forEach(e => e.hidden=false);
     };
@@ -77,7 +77,7 @@
                 });
             }
         };
-        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v3/schedules/"+selectedType+"/"+selectedLine+"/"+station+"/A+R", true);
+        xhttp.open("GET", "https://api-ratp.pierre-grimaud.fr/v4/schedules/"+selectedType+"/"+selectedLine+"/"+station+"/A+R", true);
         xhttp.send();
         document.querySelectorAll(".schedulec").forEach(e => e.hidden=false);
     };
